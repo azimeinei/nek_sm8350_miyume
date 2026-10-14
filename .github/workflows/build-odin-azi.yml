@@ -29,6 +29,12 @@ jobs:
           clang --version
           ld.lld --version
 
+      - name: Fix permissions
+        run: |
+          chmod +x scripts/*
+          chmod +x scripts/kconfig/* 2>/dev/null || true
+          find scripts -name '*.sh' -exec chmod +x {} \;
+
       - name: Configure
         run: |
           make -j"$(nproc)" ARCH=arm64 LLVM=1 LLVM_IAS=1 O=out odin_defconfig
