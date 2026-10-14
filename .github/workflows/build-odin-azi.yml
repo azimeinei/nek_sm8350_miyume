@@ -43,7 +43,7 @@ jobs:
 
       - name: Build
         run: |
-          make -j"$(nproc)" ARCH=arm64 LLVM=1 LLVM_IAS=1 O=out Image 2>&1 | tail -100
+          make -j"$(nproc)" ARCH=arm64 LLVM=1 LLVM_IAS=1 O=out Image || (make -j"$(nproc)" ARCH=arm64 LLVM=1 LLVM_IAS=1 O=out Image 2>&1 | grep -B2 -A8 -E "error:|Error:" | head -200; exit 1)
           ls -l out/arch/arm64/boot/Image
           strings out/arch/arm64/boot/Image | grep -m1 'Linux version'
 
