@@ -34,6 +34,7 @@ jobs:
           chmod +x scripts/*
           chmod +x scripts/kconfig/* 2>/dev/null || true
           find scripts -name '*.sh' -exec chmod +x {} \;
+          find arch -name '*.sh' -exec chmod +x {} \;
 
       - name: Configure
         run: |
