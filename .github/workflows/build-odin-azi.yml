@@ -1,0 +1,51 @@
+name: build-odin-azi
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: azi-build-2
+          fetch-depth: 1
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            bc bison flex libssl-dev libelf-dev libncurses-dev \
+            zip cpio rsync python3 clang lld llvm
+
+      - name: Toolchain
+        run: |
+          clang --version
+          ld.lld --version
+
+      - name: Configure
+        run: |
+          make -j"$(nproc)" ARCH=arm64 LLVM=1 LLVM_IAS=1 O=out odin_defconfig
+          echo '--- resolved key symbols ---'
+          grep -E '^CONFIG_MACH_XIAOMI_ODIN=|^CONFIG_QTI_BATTERY_CHARGER_ODIN=|^CONFIG_KSU=|^CONFIG_KSU_SUSFS=|^CONFIG_LOCALVERSION=' out/.config
+
+      - name: Build
+        run: |
+          make -j"$(nproc)" ARCH=arm64 LLVM=1 LLVM_IAS=1 O=out Image 2>&1 | tail -100
+          ls -l out/arch/arm64/boot/Image
+          strings out/arch/arm64/boot/Image | grep -m1 'Linux version'
+
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: odin-azi-Image
+          path: |
+            out/arch/arm64/boot/Image
+            out/.config
