@@ -4,6 +4,7 @@
 #include <linux/bits.h>
 #include <linux/string.h>
 #include <linux/version.h> // We need check kernel version.
+#include <linux/thread_info.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
 #include <linux/cred.h>
 #endif
@@ -154,6 +155,22 @@ static inline bool susfs_is_current_proc_umounted_app(void) {
 			current_uid().val >= 10000);
 #endif
 }
+static inline bool susfs_is_current_proc_no_su(void) {
+	return (likely(test_thread_flag(TIF_PROC_NO_SU)));
+}
+
+static inline void susfs_set_current_proc_no_su(void) {
+	set_thread_flag(TIF_PROC_NO_SU);
+}
+
+static inline void susfs_clear_current_proc_no_su(void) {
+	clear_thread_flag(TIF_PROC_NO_SU);
+}
+
+static inline void susfs_set_current_proc_umounted_for_zygote_next(void) {
+	/* compat: this susfs build has no zygote_next specific state */
+}
+
 
 #define SUSFS_IS_INODE_SUS_MAP(inode) \
 		inode && inode->i_mapping && \
